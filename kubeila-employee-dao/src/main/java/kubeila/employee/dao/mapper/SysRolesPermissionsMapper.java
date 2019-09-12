@@ -4,7 +4,9 @@ import java.util.List;
 import kubeila.employee.entity.SysRolesPermissions;
 import kubeila.employee.entity.SysRolesPermissionsExample;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface SysRolesPermissionsMapper {
     /**
      *

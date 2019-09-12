@@ -1,11 +1,10 @@
 package kubeila.employee.shiro;
 
-import com.shrio.dao.service.UserLoginService;
-import com.shrio.model.UserLogin;
+import kubeila.employee.entity.SysUsers;
+import kubeila.employee.service.SysUsersService;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
-import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
@@ -34,7 +33,7 @@ public class MyRealm extends AuthorizingRealm {
 
 
     @Autowired
-    private UserLoginService userLoginService;
+    private SysUsersService setLoginAccount;
     /**
      * 进行权限验证
      * @param principalCollection
@@ -46,8 +45,8 @@ public class MyRealm extends AuthorizingRealm {
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
         //如果身份认证的时候没有传入User对象，这里只能取到userName
         //也就是SimpleAuthenticationInfo构造的时候第一个参数传递需要User对象
-        UserLogin user  = (UserLogin)principalCollection.getPrimaryPrincipal();
-        authorizationInfo.
+        SysUsers user  = (SysUsers)principalCollection.getPrimaryPrincipal();
+        //authorizationInfo.
 
         return authorizationInfo;
     }
@@ -61,15 +60,15 @@ public class MyRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String username = (String) token.getPrincipal();
-        UserLogin userLogin = new UserLogin();
-        userLogin.setLoginAccount(username);
+        SysUsers userLogin = new SysUsers();
+        userLogin.setUsername(userLogin);
         if(!StringUtils.isEmpty(username)) {
-            userLogin = userLoginService.findByParam(userLogin);
+            userLogin = setLoginAccount.selectByExample(userLogin);
         }
         if (!"javaboy".equals(username)) {
             throw new UnknownAccountException("账户不存在!");
         }
         //Object obj = new SimpleHash("md5", "123", userLogin.getSalt(), 1);
-        return new SimpleAuthenticationInfo(username, userLogin.getLoginPwd(), ByteSource.Util.bytes(userLogin.getSalt()), getName());
+        return new SimpleAuthenticationInfo(username, userLogin.getPassword(), ByteSource.Util.bytes(userLogin.getSalt()), getName());
     }
 }

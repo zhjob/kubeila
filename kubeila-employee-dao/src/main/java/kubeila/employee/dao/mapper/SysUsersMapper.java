@@ -4,7 +4,9 @@ import java.util.List;
 import kubeila.employee.entity.SysUsers;
 import kubeila.employee.entity.SysUsersExample;
 import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface SysUsersMapper {
     /**
      *
