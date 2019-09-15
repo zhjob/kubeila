@@ -4,6 +4,8 @@ import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +32,8 @@ import java.util.Map;
  */
 @Configuration
 public class ShiroConfig {
+
+
     /**
      * 凭证匹配器
      *
@@ -43,6 +47,7 @@ public class ShiroConfig {
         hashedCredentialsMatcher.setHashIterations(1);
         return hashedCredentialsMatcher;
     }
+
 
     /**
      * 自定义realm
@@ -62,7 +67,7 @@ public class ShiroConfig {
      *
      * @return
      */
-    @Bean
+    @Bean("securityManager")
     public DefaultWebSecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(userRealm());
@@ -70,6 +75,12 @@ public class ShiroConfig {
     }
 
 
+    @Bean
+    public DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator() {
+        DefaultAdvisorAutoProxyCreator advisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
+        advisorAutoProxyCreator.setProxyTargetClass(true);
+        return advisorAutoProxyCreator;
+    }
     /**
      *  开启shiro aop注解支持.
      *  使用代理方式;所以需要开启代码支持;
@@ -90,8 +101,8 @@ public class ShiroConfig {
      * @param security
      * @return
      */
-    @Bean
-    public ShiroFilterFactoryBean shiroFilter(org.apache.shiro.mgt.SecurityManager security) {
+    @Bean("shiroFilterFactoryBean")
+    public ShiroFilterFactoryBean shiroFilterFactoryBean(org.apache.shiro.mgt.SecurityManager security) {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(security);
         shiroFilterFactoryBean.setLoginUrl("/userlogin");
@@ -101,12 +112,11 @@ public class ShiroConfig {
         //注意此处使用的是LinkedHashMap，是有顺序的，shiro会按从上到下的顺序匹配验证，匹配了就不再继续验证
         //所以上面的url要苛刻，宽松的url要放在下面，尤其是"/**"要放到最下面，如果放前面的话其后的验证规则就没作用了。
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<String, String>();
-        filterChainDefinitionMap.put("/static/**", "anon");
+        filterChainDefinitionMap.put("/unauth", "anon");
         filterChainDefinitionMap.put("/login", "anon");
+        filterChainDefinitionMap.put("/authc/**", "perms");
         filterChainDefinitionMap.put("/captcha.jpg", "anon");
         filterChainDefinitionMap.put("/favicon.ico", "anon");
-        filterChainDefinitionMap.put("/**", "authc");
-
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilterFactoryBean;
     }

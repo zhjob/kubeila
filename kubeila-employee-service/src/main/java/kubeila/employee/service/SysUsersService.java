@@ -2,8 +2,11 @@ package kubeila.employee.service;
 
 import kubeila.employee.dao.mapper.SysUsersMapper;
 import kubeila.employee.entity.SysUsers;
+import kubeila.employee.entity.SysUsersExample;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /***
  *
@@ -29,7 +32,7 @@ public class SysUsersService {
     @Autowired
     private SysUsersMapper sysUsersMapper;
 
-    public SysUsers selectByExample(SysUsers sysUsers){
-        return  sysUsersMapper.selectByPrimaryKey(sysUsers);
+    public List<SysUsers> selectByExample(SysUsersExample sysUsers){
+        return  sysUsersMapper.selectByExample(sysUsers);
     }
 }

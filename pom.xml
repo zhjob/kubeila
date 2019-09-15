@@ -9,10 +9,10 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>kubeila-employee-shiro</module>
         <module>kubeila-employee-common</module>
         <module>kubeila-employee-service</module>
         <module>kubeila-employee-dao</module>
+        <module>kubeila-employee-web</module>
     </modules>
     <dependencies>
         <dependency>

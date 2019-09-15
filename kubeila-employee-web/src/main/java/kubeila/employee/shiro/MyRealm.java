@@ -1,15 +1,22 @@
 package kubeila.employee.shiro;
 
 import kubeila.employee.entity.SysUsers;
+import kubeila.employee.entity.SysUsersExample;
+import kubeila.employee.entity.SysUsersRoles;
+import kubeila.employee.entity.SysUsersRolesExample;
+import kubeila.employee.service.SysUsersRolesService;
 import kubeila.employee.service.SysUsersService;
 import org.apache.shiro.authc.*;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
+import org.apache.shiro.crypto.hash.SimpleHash;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 /***
  *
@@ -33,7 +40,10 @@ public class MyRealm extends AuthorizingRealm {
 
 
     @Autowired
-    private SysUsersService setLoginAccount;
+    private SysUsersService sysUsersService;
+
+    @Autowired
+    private SysUsersRolesService sysUsersRolesService;
     /**
      * 进行权限验证
      * @param principalCollection
@@ -45,9 +55,18 @@ public class MyRealm extends AuthorizingRealm {
         SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
         //如果身份认证的时候没有传入User对象，这里只能取到userName
         //也就是SimpleAuthenticationInfo构造的时候第一个参数传递需要User对象
-        SysUsers user  = (SysUsers)principalCollection.getPrimaryPrincipal();
-        //authorizationInfo.
+        String username = (String) principalCollection.getPrimaryPrincipal();
+        SysUsersRoles param = new SysUsersRoles();
+        if("admin".equals(username)){
+            param.setUserId(1L);
+        }else{
+            param.setUserId(2L);
+        }
 
+         List<SysUsersRoles> list = sysUsersRolesService.selectUserstoRole(param);
+         for(SysUsersRoles sysUsersRoles : list){
+             authorizationInfo.addRole(sysUsersRoles.getRolename());
+         }
         return authorizationInfo;
     }
 
@@ -60,15 +79,15 @@ public class MyRealm extends AuthorizingRealm {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         String username = (String) token.getPrincipal();
-        SysUsers userLogin = new SysUsers();
-        userLogin.setUsername(userLogin);
-        if(!StringUtils.isEmpty(username)) {
-            userLogin = setLoginAccount.selectByExample(userLogin);
+        SysUsersExample example = new SysUsersExample();
+        SysUsersExample.Criteria criteria = example.createCriteria();
+        criteria.andUsernameEqualTo(username);
+        List<SysUsers> list =  sysUsersService.selectByExample(example);
+        if(list.size()!=1){
+            throw new UnknownAccountException("账户异常!");
         }
-        if (!"javaboy".equals(username)) {
-            throw new UnknownAccountException("账户不存在!");
-        }
-        //Object obj = new SimpleHash("md5", "123", userLogin.getSalt(), 1);
-        return new SimpleAuthenticationInfo(username, userLogin.getPassword(), ByteSource.Util.bytes(userLogin.getSalt()), getName());
+        SysUsers userLogin = list.get(0);
+        Object obj = new SimpleHash("md5", "123", userLogin.getSalt(), 1);
+        return new SimpleAuthenticationInfo(username, userLogin.getPassword(), null, getName());
     }
 }
